@@ -91,11 +91,10 @@ var l8dNDVI = l8Pre.normalizedDifference(['SR_B5', 'SR_B4'])
 // =========================================================================
 
 function classifySeverity(dndvi) {
-  return ee.Image(0)
+  return ee.Image(0)                                // Unburned/no change
     .where(dndvi.gte(0.10).and(dndvi.lt(0.25)), 1)  // Low
     .where(dndvi.gte(0.25).and(dndvi.lt(0.50)), 2)  // Moderate
-    .where(dndvi.gte(0.50), 3)                      // High
-    .updateMask(dndvi.gte(0.10));
+    .where(dndvi.gte(0.50), 3);                     // High
 }
 
 // Reproject Sentinel-2 dNDVI onto the Landsat 30 m grid before classifying,
@@ -123,18 +122,19 @@ var samplePoints = combined.stratifiedSample({
   classBand: 'Sentinel_Class',
   region: aoi,
   scale: 30,
-  geometries: true,
-  dropNulls: true
+  geometries: true
 });
 
-// Treat Landsat as the reference and Sentinel-2 as the classification being tested.
+// This compares two optical classifications against each other, not against
+// ground truth - it measures inter-sensor agreement, not correctness.
+// errorMatrix() just needs one band as the row axis; Landsat is used here.
 var errorMatrix = samplePoints.errorMatrix('Landsat_Class', 'Sentinel_Class');
 
 print('==================================================');
 print('  SENTINEL-2 vs LANDSAT 8 BURN SEVERITY AGREEMENT  ');
 print('==================================================');
 print('Confusion Matrix:', errorMatrix.array());
-print('Overall Accuracy (%):', errorMatrix.accuracy().multiply(100));
+print('Overall Agreement (%):', errorMatrix.accuracy().multiply(100));
 print('Producer\'s Accuracy [Low, Moderate, High] (%):', errorMatrix.producersAccuracy().multiply(100));
 print('Consumer\'s Accuracy [Low, Moderate, High] (%):', errorMatrix.consumersAccuracy().multiply(100));
 print('Kappa Coefficient:', errorMatrix.kappa());
@@ -145,6 +145,10 @@ print('Kappa Coefficient:', errorMatrix.kappa());
 
 var severityPalette = ['#ffff00', '#ff9900', '#ff0000'];
 
-Map.addLayer(s2Severity, {min: 1, max: 3, palette: severityPalette}, 'Sentinel-2 Severity (30 m grid)');
-Map.addLayer(l8Severity, {min: 1, max: 3, palette: severityPalette}, 'Landsat 8 Severity (30 m grid)');
+// s2Severity/l8Severity now carry class 0 everywhere (needed so the error
+// matrix can see omission error, not just pixels Sentinel already flagged
+// as burned) - mask it back out only for display, so the map still shows
+// classified burn areas rather than a flat class-0 overlay.
+Map.addLayer(s2Severity.updateMask(s2Severity.gt(0)), {min: 1, max: 3, palette: severityPalette}, 'Sentinel-2 Severity (30 m grid)');
+Map.addLayer(l8Severity.updateMask(l8Severity.gt(0)), {min: 1, max: 3, palette: severityPalette}, 'Landsat 8 Severity (30 m grid)');
 Map.addLayer(samplePoints, {color: 'blue'}, 'Validation Sample Points', false);
