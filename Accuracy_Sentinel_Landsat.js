@@ -4,11 +4,11 @@
 // 30 m grid to estimate agreement/accuracy between sensors.
 // =========================================================================
 
-// 1. Area of Interest - Santa Monica Mountains, LA
+// 1. Area of Interest - matches the AOI used in basic_LA_fire_NDVI_.js
 var aoi = ee.Geometry.Polygon([
-  [[-118.75, 34.35], [-118.75, 33.95], [-118.05, 33.95], [-118.05, 34.35]]
+  [[-118.70, 34.20], [-118.70, 34.00], [-118.00, 34.00], [-118.00, 34.20]]
 ]);
-Map.centerObject(aoi, 10);
+Map.centerObject(aoi, 11);
 
 // Water (ocean, reservoirs) has very low, unstable reflectance in the red/NIR
 // bands, so NDVI over water is noisy — sunglint or wave state differences
