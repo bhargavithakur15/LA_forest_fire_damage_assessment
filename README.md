@@ -10,6 +10,16 @@ This repository demonstrates that approach using a 2025 Los Angeles wildfire cas
 
 The broader takeaway is that dNDVI/dNBR-based severity maps can substitute for or prioritize field inspections, provide a consistent basis for claim/loss estimation, and support continued monitoring of recovery — with the caveats that optical imagery is limited by cloud cover (SAR is a weather-independent complement) and seasonal vegetation cycles should be accounted for when setting change thresholds.
 
+## Results
+
+| Pre-fire | Post-fire |
+|---|---|
+| ![Pre-fire imagery](images/pre_fire.png) | ![Post-fire imagery](images/post_fire.png) |
+
+| Severity classification | Area selection |
+|---|---|
+| ![Burn severity classification](images/severity_classification.png) | ![Area of interest selection](images/area_selection.png) |
+
 ## Scripts
 
 - **`basic_LA_fire_NDVI_.js`** — Interactive Earth Engine app that computes pre-/post-fire NDVI and dNDVI, classifies burn severity (low/moderate/high), and lets the user draw a custom area of interest to get acreage metrics on demand.
