@@ -41,9 +41,14 @@ var s2Post = s2Collection.filterDate(postStart, postEnd)
   .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 15))
   .map(maskS2clouds).median();
 
+// median() composites lose their native per-pixel projection, so it must be
+// restored explicitly (from a raw scene) before any resampling can occur.
+var s2NativeProjection = s2Collection.first().select('B4').projection();
+
 var s2dNDVI = s2Pre.normalizedDifference(['B8', 'B4'])
   .subtract(s2Post.normalizedDifference(['B8', 'B4']))
-  .rename('dNDVI');
+  .rename('dNDVI')
+  .setDefaultProjection(s2NativeProjection);
 
 // =========================================================================
 // LANDSAT 8 PROCESSING (native 30 m)
@@ -86,11 +91,15 @@ function classifySeverity(dndvi) {
 }
 
 // Reproject Sentinel-2 dNDVI onto the Landsat 30 m grid before classifying,
-// so both sensors are compared on identical pixels.
-var l8Projection = l8dNDVI.projection();
-var s2dNDVI_30m = s2dNDVI.reproject(l8Projection)
+// so both sensors are compared on identical pixels. The target grid must
+// come from a raw Landsat scene (native 30 m), not the composite, which
+// has no reliable default projection of its own.
+var l8NativeProjection = l8Collection.first().select('SR_B4').projection();
+l8dNDVI = l8dNDVI.setDefaultProjection(l8NativeProjection);
+
+var s2dNDVI_30m = s2dNDVI.reproject(l8NativeProjection)
   .reduceResolution({reducer: ee.Reducer.mean(), maxPixels: 65})
-  .reproject(l8Projection);
+  .reproject(l8NativeProjection);
 
 var s2Severity = classifySeverity(s2dNDVI_30m).rename('Sentinel_Class').clip(aoi);
 var l8Severity = classifySeverity(l8dNDVI).rename('Landsat_Class').clip(aoi);
