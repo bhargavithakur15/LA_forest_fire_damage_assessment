@@ -15,8 +15,8 @@ The broader takeaway is that dNDVI/dNBR-based severity maps can substitute for o
 - **`basic_LA_fire_NDVI_.js`** — Interactive Earth Engine app that computes pre-/post-fire NDVI and dNDVI, classifies burn severity (low/moderate/high), and lets the user draw a custom area of interest to get acreage metrics on demand.
 - **`LA_fire_NBR.js`** — Advanced Normalized Burn Ratio (NBR/dNBR) workflow with BRDF normalization and terrain illumination correction for more accurate severity mapping.
 - **`LA2025_fire.js`** — NBR/dNBR burn severity classification with an interactive time-series chart: click any point on the map to plot its NBR trajectory over time.
-- **`Accuracy_LAfire.js`** — Validates Sentinel-2-derived NDVI burn severity classification against BAER (Burned Area Emergency Response) dNBR ground-truth data using an error matrix (overall, producer's, and consumer's accuracy).
-- **`Change_Detection.js`** — Multi-year (2014–2020) Landsat 8 EVI change detection and anomaly analysis, including yearly composites, a time-series GIF, and standard anomaly (Z-score) maps.
+- **`Accuracy_Sentinel_Landsat.js`** — Cross-sensor validation: computes dNDVI burn severity independently from Sentinel-2 and Landsat 8, resamples both to a common 30 m grid, and compares them with an error matrix (overall accuracy, producer's/consumer's accuracy, kappa). This is the script behind the ~85% cross-sensor accuracy figure.
+- **`Accuracy_LAfire.js`** — An earlier attempt at validating Sentinel-2 NDVI severity against BAER (Burned Area Emergency Response) dNBR ground-truth data; included for reference, but the ground-truth comparison did not produce reliable results.
 
 ## Methodology
 
