@@ -10,6 +10,12 @@ var aoi = ee.Geometry.Polygon([
 ]);
 Map.centerObject(aoi, 10);
 
+// Water (ocean, reservoirs) has very low, unstable reflectance in the red/NIR
+// bands, so NDVI over water is noisy — sunglint or wave state differences
+// between the pre- and post-fire composite dates alone can produce a dNDVI
+// swing that crosses the burn threshold. Mask water out before classifying.
+var landMask = ee.Image('JRC/GSW1_4/GlobalSurfaceWater').select('max_extent').eq(0);
+
 // 2. Temporal Windows (Pre-fire vs Post-fire)
 var preStart = '2024-11-01';
 var preEnd   = '2024-12-25';
@@ -48,7 +54,8 @@ var s2NativeProjection = s2Collection.first().select('B4').projection();
 var s2dNDVI = s2Pre.normalizedDifference(['B8', 'B4'])
   .subtract(s2Post.normalizedDifference(['B8', 'B4']))
   .rename('dNDVI')
-  .setDefaultProjection(s2NativeProjection);
+  .setDefaultProjection(s2NativeProjection)
+  .updateMask(landMask);
 
 // =========================================================================
 // LANDSAT 8 PROCESSING (native 30 m)
@@ -76,7 +83,8 @@ var l8Post = l8Collection.filterDate(postStart, postEnd)
 // Landsat 8 SR bands: SR_B5 = NIR, SR_B4 = Red
 var l8dNDVI = l8Pre.normalizedDifference(['SR_B5', 'SR_B4'])
   .subtract(l8Post.normalizedDifference(['SR_B5', 'SR_B4']))
-  .rename('dNDVI');
+  .rename('dNDVI')
+  .updateMask(landMask);
 
 // =========================================================================
 // COMMON 30 m GRID + SEVERITY CLASSIFICATION
